@@ -412,6 +412,22 @@ nacl_factory.instantiate(function (nacl) {
 
                 // draw guilloche
                 guillocheParams = PaperWallet.draw.guillocheParams(key);
+                switch (guillocheParams.angleMultiplier) {
+                    case 1:
+                        opts.color.publicUpper = '#000000';
+	                    opts.color.publicLower = '#0288d1';
+                    	break;
+                    case 2:
+	                    opts.color.publicUpper = '#000000';
+	                    opts.color.publicLower = '#f57c00';
+                    	break;
+                    case 3:
+	                    opts.color.publicUpper = '#000000';
+	                    opts.color.publicLower = '#663399';
+                    	break;
+                }
+	            PaperWallet.draw.gradients(ctx, opts);
+                console.log(guillocheParams);
                 guillocheParams.color = opts.color.guilloche;
                 guillocheParams.centerPoint = cp;
                 PaperWallet.draw.guilloche(ctx,  guillocheParams);
@@ -432,7 +448,7 @@ nacl_factory.instantiate(function (nacl) {
 	    var drawOpts = {
 		    color: {
 			    publicUpper: "#000000",
-			    publicLower: "#f7931a",
+			    publicLower: "#0288d1",
 			    privateLeft: "#8cd96f",
 			    privateRight: "#fff67d",
 			    pointer: "#03ab5d",
