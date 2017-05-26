@@ -11,14 +11,56 @@ Canton Becker - https://github.com/cantonbecker/bitcoinpaperwallet
 </head>
 <body>
 
-<input type="text" id="pubKey" />
+Secret: <input type="text" id="pubKey" /><br/>
+Lisk PublicKey: <span id="publicKey"></span><br/>
 
-<img id='papersvg' class='papersvg' src='' />
+<img id='papersvg' class='papersvg' src=''/>
 
 </body>
 
+<script src="nacl_factory.js"></script>
+<script>
+var naclInstance;
+nacl_factory.instantiate(function (nacl) {
+    naclInstance = nacl;
+});
+</script>
 <script src="crypto.js"></script>
 <script>
+
+	function ab2str(buf) {
+		return String.fromCharCode.apply(null, new Uint16Array(buf));
+	}
+
+	function str2ab(str) {
+		var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+		var bufView = new Uint16Array(buf);
+		for (var i=0, strLen=str.length; i<strLen; i++) {
+			bufView[i] = str.charCodeAt(i);
+		}
+		return buf;
+	}
+
+	var liskWalletGenerator = {
+		sha256hash: function (stringToHash) {
+			return naclInstance.crypto_hash_sha256(naclInstance.encode_utf8(stringToHash));
+		},
+		bufferToHex: function (buffer) {
+			return naclInstance.to_hex(buffer);
+		},
+		hexToBuffer: function (hex) {
+			return naclInstance.from_hex(hex);
+		},
+		createKeyPair: function (secret) {
+			var sha256Hash = this.sha256hash(secret, 'utf8');
+			var keypair = naclInstance.crypto_sign_seed_keypair(sha256Hash);
+			return {
+				privateKey: this.bufferToHex(keypair.signSk),
+				publicKey: this.bufferToHex(keypair.signPk)
+			};
+		}
+
+	};
 
     (function() {
 	    var PaperWallet = {};
@@ -128,7 +170,7 @@ Canton Becker - https://github.com/cantonbecker/bitcoinpaperwallet
                 width = Math.min(width,1.2); // prevent overly chunky lines
 
                 msg = Crypto.SHA256(msg, {asBytes: true});
-                var radiusEffectConstant = scaled_between(float01(msg), majorR*0.9, majorR);
+                var radiusEffectConstant = scaled_between(float01(msg), majorR*0.95, majorR);
 
                 msg = Crypto.SHA256(msg, {asBytes: true});
                 var angleMultiplier = Math.ceil(scaled_between(float01(msg), 0, 3));
@@ -274,7 +316,7 @@ Canton Becker - https://github.com/cantonbecker/bitcoinpaperwallet
                 grd.addColorStop(0, opts.color.publicUpper);
                 grd.addColorStop(1, opts.color.publicLower);
                 ctx.fillStyle = grd;
-                ctx.fillRect(55, 82, 958, 807);
+                ctx.fillRect(0, 0, 958, 807);
 
                 grd = ctx.createLinearGradient(1013, 0, 2961, 0)
                 grd.addColorStop(0, opts.color.privateLeft);
@@ -389,7 +431,7 @@ Canton Becker - https://github.com/cantonbecker/bitcoinpaperwallet
 
 	    var drawOpts = {
 		    color: {
-			    publicUpper: "#fff57c",
+			    publicUpper: "#000000",
 			    publicLower: "#f7931a",
 			    privateLeft: "#8cd96f",
 			    privateRight: "#fff67d",
@@ -417,8 +459,10 @@ Canton Becker - https://github.com/cantonbecker/bitcoinpaperwallet
 	    document.getElementById("pubKey").onchange = function() {
 
 	    	var key = document.getElementById("pubKey").value;
+		    var keypair = liskWalletGenerator.createKeyPair(key);
 
-		    document.getElementById("papersvg").src = PaperWallet.draw.frontImage(key, drawOpts);
+		    document.getElementById('publicKey').innerHTML = keypair.publicKey;
+		    document.getElementById("papersvg").src = PaperWallet.draw.frontImage(keypair.publicKey, drawOpts);
 
         };
 
