@@ -5,5 +5,6 @@ Creates random guilloche pattern from a string input. This shall serve in order 
 
 ------
 
-Inspired by: Martin Ankerl (guilloche patterns)
+Inspired by: 
+Martin Ankerl (guilloche patterns);
 Canton Becker - https://github.com/cantonbecker/bitcoinpaperwallet
